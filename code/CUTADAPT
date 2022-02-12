@@ -1,0 +1,27 @@
+cutadapt -g ^CCTACGGNGGCWGCAG -G ^GACTACHVGGGTATCTAATCC \
+    --minimum-length 200 \
+    --discard-untrimmed \
+    -o ./cutadapt/R12_trimmed.fq -p ./cutadapt/R22_trimmed.fq ACt0_L001_R1_001.fastq ACt0_L001_R2_001.fastq
+
+https://arep.med.harvard.edu/labgc/adnan/projects/Utilities/revcomp.html
+FW: CCTACGGNGGCWGCAG 16
+RV: ACTACHVGGGTATCTAATCC 21
+
+# script para hacerlo en bucle con todas las muestras del archivo samples.txt
+for sample in $(cat samples.txt)
+do
+
+    echo "On sample: $sample"
+    
+    cutadapt -g ^CCTACGGNGGCWGCAG -G ^GACTACHVGGGTATCTAATCC \
+    -m 215 -M 285 --discard-untrimmed \
+    -o ./cutadapt/${sample}_L001_R1_001.fq.gz -p ./cutadapt/${sample}_L001_R2_001.fq.gz \
+    ${sample}_L001_R1_001.fastq ${sample}_L001_R2_001.fastq \
+    >> cutadapt_primer_trimming_stats.txt 2>&1
+
+done
+
+
+paste samples.txt <(grep "passing" cutadapt_primer_trimming_stats.txt | cut -f3 -d "(" | tr -d ")") <(grep "filtered" cutadapt_primer_trimming_stats.txt | cut -f3 -d "(" | tr -d ")")
+# muestra la fracción de reads retenidas en cada muestra (columna 2) y la fracción de bps retenidas en cada muestra (columna 3)
+
